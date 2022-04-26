@@ -11,6 +11,9 @@ namespace Orleans.Streams.Kafka.Config
 		private readonly ISiloBuilder _hostBuilder;
 		private readonly string _providerName;
 		private Action<KafkaStreamOptions> _configure;
+#nullable enable
+		private Action<ISiloPersistentStreamConfigurator>? _streamConfigure;
+#nullable restore
 
 		public KafkaStreamSiloBuilder(ISiloBuilder hostBuilder, string providerName)
 		{
@@ -18,9 +21,13 @@ namespace Orleans.Streams.Kafka.Config
 			_providerName = providerName;
 		}
 
-		public KafkaStreamSiloBuilder WithOptions(Action<KafkaStreamOptions> configure)
+#nullable enable
+		public KafkaStreamSiloBuilder WithOptions(Action<KafkaStreamOptions> configure,
+			Action<ISiloPersistentStreamConfigurator>? streamConfigure = null)
+#nullable restore
 		{
 			_configure = configure;
+			_streamConfigure = streamConfigure;
 			return this;
 		}
 
@@ -79,7 +86,8 @@ namespace Orleans.Streams.Kafka.Config
 		{
 			_hostBuilder.AddKafkaStreamProvider(
 				_providerName,
-				options => _configure?.Invoke(options)
+				options => _configure?.Invoke(options),
+				stream => _streamConfigure?.Invoke(stream)
 			);
 
 			return _hostBuilder;
@@ -91,6 +99,9 @@ namespace Orleans.Streams.Kafka.Config
 		private readonly ISiloHostBuilder _hostBuilder;
 		private readonly string _providerName;
 		private Action<KafkaStreamOptions> _configure;
+#nullable enable
+		private Action<ISiloPersistentStreamConfigurator>? _streamConfigure;
+#nullable restore
 
 		public KafkaStreamSiloHostBuilder(ISiloHostBuilder hostBuilder, string providerName)
 		{
@@ -98,11 +109,15 @@ namespace Orleans.Streams.Kafka.Config
 			_providerName = providerName;
 		}
 
-		public KafkaStreamSiloHostBuilder WithOptions(Action<KafkaStreamOptions> configure)
+#nullable enable
+		public KafkaStreamSiloHostBuilder WithOptions(Action<KafkaStreamOptions> configure,
+			Action<ISiloPersistentStreamConfigurator>? streamConfigure = null)
 		{
 			_configure = configure;
+			_streamConfigure = streamConfigure;
 			return this;
 		}
+#nullable restore
 
 		public KafkaStreamSiloHostBuilder AddExternalDeserializer<TDeserializer>()
 			where TDeserializer : class, IExternalStreamDeserializer
@@ -159,7 +174,8 @@ namespace Orleans.Streams.Kafka.Config
 		{
 			_hostBuilder.AddKafkaStreamProvider(
 				_providerName,
-				options => _configure?.Invoke(options)
+				options => _configure?.Invoke(options),
+				stream => _streamConfigure?.Invoke(stream)
 			);
 
 			return _hostBuilder;

@@ -67,13 +67,15 @@ namespace Orleans.Hosting
 		public static ISiloBuilder AddKafkaStreamProvider(
 			this ISiloBuilder builder,
 			string providerName,
-			Action<KafkaStreamOptions> configureOptions
-		) => AddSiloProvider(builder, providerName, opt => opt.Configure(configureOptions));
+			Action<KafkaStreamOptions> configureOptions,
+			Action<ISiloPersistentStreamConfigurator> streamConfigure
+		) => AddSiloProvider(builder, providerName, opt => opt.Configure(configureOptions), streamConfigure);
 
 		private static ISiloBuilder AddSiloProvider(
 			this ISiloBuilder builder,
 			string providerName,
-			Action<OptionsBuilder<KafkaStreamOptions>> configureOptions = null
+			Action<OptionsBuilder<KafkaStreamOptions>> configureOptions,
+			Action<ISiloPersistentStreamConfigurator> streamConfigure
 		)
 		{
 			builder
@@ -85,8 +87,11 @@ namespace Orleans.Hosting
 						.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(providerName)
 					;
 				})
-				.AddPersistentStreams(providerName, KafkaAdapterFactory.Create,
-					stream => stream.Configure(configureOptions))
+				.AddPersistentStreams(providerName, KafkaAdapterFactory.Create, stream =>
+				{
+					stream.Configure(configureOptions);
+					streamConfigure(stream);
+				})
 				.Configure<SimpleQueueCacheOptions>(options => options.CacheSize = DefaultCacheSize);
 
 			return builder;
@@ -95,13 +100,15 @@ namespace Orleans.Hosting
 		public static ISiloHostBuilder AddKafkaStreamProvider(
 			this ISiloHostBuilder builder,
 			string providerName,
-			Action<KafkaStreamOptions> configureOptions
-		) => AddSiloProvider(builder, providerName, opt => opt.Configure(configureOptions));
+			Action<KafkaStreamOptions> configureOptions,
+			Action<ISiloPersistentStreamConfigurator> streamConfigure
+		) => AddSiloProvider(builder, providerName, opt => opt.Configure(configureOptions), streamConfigure);
 
 		private static ISiloHostBuilder AddSiloProvider(
 			this ISiloHostBuilder builder,
 			string providerName,
-			Action<OptionsBuilder<KafkaStreamOptions>> configureOptions = null
+			Action<OptionsBuilder<KafkaStreamOptions>> configureOptions,
+			Action<ISiloPersistentStreamConfigurator> streamConfigure
 		)
 		{
 			builder
@@ -113,8 +120,11 @@ namespace Orleans.Hosting
 						.ConfigureNamedOptionForLogging<HashRingStreamQueueMapperOptions>(providerName)
 					;
 				})
-				.AddPersistentStreams(providerName, KafkaAdapterFactory.Create,
-					stream => stream.Configure(configureOptions))
+				.AddPersistentStreams(providerName, KafkaAdapterFactory.Create, stream =>
+				{
+					stream.Configure(configureOptions);
+					streamConfigure(stream);
+				})
 				.Configure<SimpleQueueCacheOptions>(options => options.CacheSize = DefaultCacheSize);
 
 			return builder;
